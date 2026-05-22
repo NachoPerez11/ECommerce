@@ -14,34 +14,37 @@ public class ProductRepository : IProductRepository
         _context = context;
     }
 
-    public async Task<Product?> GetByIdAsync(Guid id)
+    public async Task<Product?> GetByIdAsync(Guid id, CancellationToken ct = default)
     {
-        return await _context.Products.FindAsync(id);
+        return await _context.Products.FindAsync(id, ct);
     }
 
-    public async Task<IEnumerable<Product>> GetAllAsync()
+    public async Task<IEnumerable<Product>> GetAllAsync(CancellationToken ct = default)
     {
         return await _context.Products.ToListAsync();
     }
 
-    public async Task AddAsync(Product product)
+    public async Task AddAsync(Product product, CancellationToken ct = default)
     {
-        await _context.Products.AddAsync(product);
+        await _context.Products.AddAsync(product, ct);
     }
 
-    public void Update(Product product)
+    public async Task DeleteAsync(Guid id, CancellationToken ct = default)
     {
-        // EF Core trackea los cambios automáticamente, pero dejamos el método expuesto por arquitectura
+        var product = await _context.Products.FindAsync(id, ct);
+        if (product != null)
+        {
+            _context.Products.Remove(product);
+        }
+    }
+
+    public async Task UpdateAsync(Product product, CancellationToken ct = default)
+    {
         _context.Products.Update(product);
     }
 
-    public void Delete(Product product)
+    public async Task<bool> SaveChangesAsync(CancellationToken ct = default)
     {
-        _context.Products.Remove(product);
-    }
-
-    public async Task<bool> SaveChangesAsync()
-    {
-        return await _context.SaveChangesAsync() > 0;
+        return await _context.SaveChangesAsync(ct) > 0;
     }
 }

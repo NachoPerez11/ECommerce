@@ -28,4 +28,25 @@ public class OrderRepository : IOrderRepository
         await _ctx.Orders.AddAsync(order, ct);
         await _ctx.SaveChangesAsync(ct);
     }
+
+    public async Task UpdateAsync(Order order, CancellationToken ct = default)
+    {
+        _ctx.Orders.Update(order);
+        await _ctx.SaveChangesAsync(ct);
+    }
+
+    public async Task DeleteAsync(Guid id, CancellationToken ct = default)
+    {
+        var order = await _ctx.Orders.FindAsync(new object[] { id }, ct);
+        if (order != null)
+        {
+            _ctx.Orders.Remove(order);
+            await _ctx.SaveChangesAsync(ct);
+        }
+    }
+
+    public async Task SaveChangesAsync(CancellationToken ct = default)
+    {
+        await _ctx.SaveChangesAsync(ct);
+    }
 }

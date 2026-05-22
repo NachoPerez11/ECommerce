@@ -2,6 +2,8 @@ using Microsoft.AspNetCore.Mvc;
 using ECommerce.Application.Interfaces;
 using ECommerce.Domain.Entities;
 using ECommerce.Api.DTOs;
+using Microsoft.AspNetCore.Authorization;
+using ECommerce.Infrastructure.Repositories;
 
 namespace ECommerce.Api.Controllers;
 
@@ -18,6 +20,7 @@ public class OrdersController : ControllerBase
         _productRepository = productRepository;
     }
 
+    [Authorize]
     [HttpGet("{id:guid}")]
     public async Task<IActionResult> GetById(Guid id)
     {
@@ -26,6 +29,7 @@ public class OrdersController : ControllerBase
         return Ok(order);
     }
 
+    [Authorize]
     [HttpPost]
     public async Task<IActionResult> Create([FromBody] CreateOrderDto dto)
     {
@@ -38,12 +42,8 @@ public class OrdersController : ControllerBase
                 var product = await _productRepository.GetByIdAsync(itemDto.ProductId);
                 if (product == null) 
                     return BadRequest(new { Message = $"El producto con ID {itemDto.ProductId} no existe." });
-
-                // Agrega el item y descuenta el stock usando las reglas del Dominio
                 order.AddItem(product, itemDto.Quantity);
-                
-                // Actualizamos el stock modificado en el repositorio de productos
-                _productRepository.Update(product);
+                await _productRepository.UpdateAsync(product);
             }
 
             await _orderRepository.AddAsync(order);
@@ -55,5 +55,16 @@ public class OrdersController : ControllerBase
         {
             return BadRequest(new { Message = ex.Message });
         }
+    }
+
+    [Authorize]
+    [HttpDelete("{id:guid}")]
+    public async Task<IActionResult> Delete(Guid id)
+    {
+        var order = await _orderRepository.GetByIdWithItemsAsync(id);
+        if (order == null) return NotFound(new { Message = "Orden no encontrada." });
+        await _orderRepository.DeleteAsync(order.Id);
+        await _orderRepository.SaveChangesAsync();
+        return NoContent();
     }
 }

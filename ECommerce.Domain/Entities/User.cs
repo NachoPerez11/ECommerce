@@ -2,14 +2,14 @@ namespace ECommerce.Domain.Entities;
 
 public class User
 {
-    public Guid Id { get; private set; }
-    public string Email { get; private set; } = string.Empty;
-    public string Name { get; private set; } = string.Empty;
-    public string PasswordHash { get; private set; } = string.Empty;  // nunca en DTOs [cite: 32]
-    public string Role { get; private set; } = "User";  // "User" | "Admin" [cite: 32]
-    public DateTime CreatedAt { get; private set; }
+    public Guid Id { get; set; }
+    public string Email { get; set; } = string.Empty;
+    public string Name { get; set; } = string.Empty;
+    public string PasswordHash { get; set; } = string.Empty;
+    public string Role { get; set; } = "User"; 
+    public DateTime CreatedAt { get; set; }
 
-    private User() { }
+    public User() { }
     public User(string email, string name, string passwordHash)
     {
         Id           = Guid.NewGuid();
