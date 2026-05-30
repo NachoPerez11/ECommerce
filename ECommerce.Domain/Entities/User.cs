@@ -1,21 +1,53 @@
+using ECommerce.Domain.Exceptions;
+
 namespace ECommerce.Domain.Entities;
 
-public class User
+public class User : BaseEntity
 {
-    public Guid Id { get; set; }
-    public string Email { get; set; } = string.Empty;
-    public string Name { get; set; } = string.Empty;
-    public string PasswordHash { get; set; } = string.Empty;
-    public string Role { get; set; } = "User"; 
-    public DateTime CreatedAt { get; set; }
+    public string Email { get; private set; }
+    public string Name { get; private set; }
+    public string PasswordHash { get; private set; }
+    public string Role { get; private set; }
+    public DateTime CreatedAt { get; private set; }
 
-    public User() { }
-    public User(string email, string name, string passwordHash)
+    // Constructor privado para EF Core
+    private User()
     {
-        Id           = Guid.NewGuid();
-        Email        = email;
-        Name         = name;
-        PasswordHash = passwordHash;
-        CreatedAt    = DateTime.UtcNow;
+        Email = string.Empty;
+        Name = string.Empty;
+        PasswordHash = string.Empty;
+        Role = "User";
+    }
+
+    // Factory method — única forma de crear un usuario válido
+    public static User Create(string email, string name, string passwordHash, string role = "User")
+    {
+        if (string.IsNullOrWhiteSpace(email))
+            throw new DomainRuleException("El email es obligatorio.");
+            
+        if (string.IsNullOrWhiteSpace(name))
+            throw new DomainRuleException("El nombre es obligatorio.");
+            
+        if (string.IsNullOrWhiteSpace(passwordHash))
+            throw new DomainRuleException("El hash de la contraseña es obligatorio.");
+
+        return new User
+        {
+            Email = email.Trim(),
+            Name = name.Trim(),
+            PasswordHash = passwordHash,
+            // Si le pasan un rol vacío o nulo, le clavamos "User" por defecto
+            Role = string.IsNullOrWhiteSpace(role) ? "User" : role.Trim(),
+            CreatedAt = DateTime.UtcNow
+        };
+    }
+
+    // Comportamiento del dominio
+    public void ChangeRole(string newRole)
+    {
+        if (string.IsNullOrWhiteSpace(newRole))
+            throw new DomainRuleException("El nuevo rol es obligatorio.");
+
+        Role = newRole.Trim();
     }
 }

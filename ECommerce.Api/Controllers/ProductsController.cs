@@ -1,65 +1,28 @@
+using MediatR;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Authorization;
-using ECommerce.Application.Interfaces;
-using ECommerce.Domain.Entities;
-using ECommerce.Api.DTOs;
+using ECommerce.Application.Features.Products.Commands;
+using ECommerce.Application.Features.Products.Queries;
 
 namespace ECommerce.Api.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
-public class ProductsController : ControllerBase
+public class ProductsController(IMediator mediator) : ControllerBase
 {
-    private readonly IProductRepository _productRepository;
-    public ProductsController(IProductRepository productRepository)
-    {
-        _productRepository = productRepository;
-    }
-
-    [Authorize]
-    [HttpGet]
-    public async Task<IActionResult> GetAll()
-    {
-        var products = await _productRepository.GetAllAsync();
-        return Ok(products);
-    }
-
-    [Authorize]
-    [HttpGet("{id:guid}")]
-    public async Task<IActionResult> GetById(Guid id)
-    {
-        var product = await _productRepository.GetByIdAsync(id);
-        if (product == null)
-            return NotFound(new { Message = $"Producto con ID {id} no encontrado." });
-
-        return Ok(product);
-    }
-
-    [Authorize(Roles="Admin")]
     [HttpPost]
-    public async Task<IActionResult> Create([FromBody] CreateProductDto dto)
+    public async Task<IActionResult> CreateProduct([FromBody] CreateProductCommand command)
     {
-        try
-        {
-            var product = new Product(dto.Name, dto.Description, dto.Price, dto.Stock);
-
-            await _productRepository.AddAsync(product);
-            await _productRepository.SaveChangesAsync();
-
-            return CreatedAtAction(nameof(GetById), new { id = product.Id }, product);
-        }
-        catch (ArgumentException ex)
-        {
-            return BadRequest(new { Message = ex.Message });
-        }
+        var productId = await mediator.Send(command);
+        
+        return CreatedAtAction(nameof(GetProducts), new { id = productId }, productId);
     }
 
-    [Authorize(Roles="Admin")]
-    [HttpDelete("{id:guid}")]
-    public async Task<IActionResult> Delete(Guid id)
+    // GET: api/products
+    [HttpGet]
+    public async Task<IActionResult> GetProducts([FromQuery] GetProductsQuery query)
     {
-        await _productRepository.DeleteAsync(id);
-        await _productRepository.SaveChangesAsync();
-        return NoContent();
+        var products = await mediator.Send(query);
+        
+        return Ok(products);
     }
 }

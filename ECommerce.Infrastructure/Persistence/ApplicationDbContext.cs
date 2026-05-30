@@ -1,24 +1,43 @@
-using Microsoft.EntityFrameworkCore;
 using ECommerce.Domain.Entities;
+using Microsoft.EntityFrameworkCore;
 
 namespace ECommerce.Infrastructure.Persistence;
 
-public class ApplicationDbContext : DbContext
+public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options) : DbContext(options)
 {
-    public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options)
-        : base(options)
-    {
-    }
-
-    public DbSet<Product> Products { get; set; } = null!;
-    public DbSet<Order> Orders { get; set; } = null!;
-    public DbSet<OrderItem> OrderItems { get; set; } = null!;
-    public DbSet<User> Users { get; set; } = null!;
-    public DbSet<Category> Categories { get; set; } = null!;
+    public DbSet<User> Users { get; set; }
+    public DbSet<Product> Products { get; set; } 
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
-        modelBuilder.ApplyConfigurationsFromAssembly(typeof(ApplicationDbContext).Assembly);
         base.OnModelCreating(modelBuilder);
+
+        // ==========================================
+        // CONFIGURACIÓN DE USER
+        // ==========================================
+        modelBuilder.Entity<User>(entity =>
+        {
+            entity.ToTable("Users");
+            entity.HasKey(e => e.Id);
+            entity.HasIndex(e => e.Email).IsUnique();
+            
+            entity.Property(e => e.Email).IsRequired().HasMaxLength(150);
+            entity.Property(e => e.Name).IsRequired().HasMaxLength(100);
+            entity.Property(e => e.PasswordHash).IsRequired();
+            entity.Property(e => e.Role).IsRequired().HasMaxLength(50);
+        });
+
+        // ==========================================
+        // CONFIGURACIÓN DE PRODUCT
+        // ==========================================
+        modelBuilder.Entity<Product>(entity =>
+        {
+            entity.ToTable("Products");
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.Name).IsRequired().HasMaxLength(200);
+            entity.Property(e => e.Description).HasMaxLength(1000);
+            entity.Property(e => e.Price).HasColumnType("decimal(18,2)");
+            entity.Property(e => e.Stock).IsRequired();
+        });
     }
 }

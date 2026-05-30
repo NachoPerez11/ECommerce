@@ -14,28 +14,25 @@ public class ProductConfiguration : IEntityTypeConfiguration<Product>
         // Clave primaria
         builder.HasKey(p => p.Id);
         
-        // REQUISITO CLAVE: Como el Guid lo genera el dominio, le avisamos a EF Core que no intente autogenerarlo
-        builder.Property(p => p.Id)
-               .ValueGeneratedNever();
+       
+       builder.Property(p => p.Id)
+              .ValueGeneratedNever();
 
-        builder.Property(p => p.Name)
-               .IsRequired()
-               .HasMaxLength(150);
+       builder.Property(p => p.Name)
+              .IsRequired()
+              .HasMaxLength(150);
 
-        builder.Property(p => p.Description)
-               .HasMaxLength(500);
+       builder.Property(p => p.Description)
+              .HasMaxLength(500);
 
-        builder.Property(p => p.Price)
-               .IsRequired()
-               .HasColumnType("decimal(18,2)");
+       builder.Property(p => p.Price)
+              .IsRequired()
+              .HasColumnType("decimal(18,2)");
 
-        builder.Property(p => p.Stock)
-               .IsRequired();
+       builder.Property(p => p.Stock)
+              .IsRequired();
 
-        builder.Property(p => p.IsActive)
-               .IsRequired();
-
-        builder.Property(p => p.CreatedAt)
-               .IsRequired();
+       builder.Property(p => p.IsActive)
+              .IsRequired();
     }
 }
