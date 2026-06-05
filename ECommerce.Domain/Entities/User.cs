@@ -36,13 +36,11 @@ public class User : BaseEntity
             Email = email.Trim(),
             Name = name.Trim(),
             PasswordHash = passwordHash,
-            // Si le pasan un rol vacío o nulo, le clavamos "User" por defecto
             Role = string.IsNullOrWhiteSpace(role) ? "User" : role.Trim(),
             CreatedAt = DateTime.UtcNow
         };
     }
 
-    // Comportamiento del dominio
     public void ChangeRole(string newRole)
     {
         if (string.IsNullOrWhiteSpace(newRole))
